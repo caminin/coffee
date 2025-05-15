@@ -1,0 +1,29 @@
+monolog:
+    channels: ['rabbit_consumer', 'coffee_worker']
+    handlers:
+        # Ce handler 'main' est un exemple, adaptez-le à votre configuration existante si besoin
+        # Il est configuré pour ne PAS logger les messages des canaux dédiés pour éviter la duplication.
+        main:
+            type: stream
+            path: "%kernel.logs_dir%/%kernel.environment%.log"
+            level: debug
+            channels: ["!event", "!doctrine", "!console", "!rabbit_consumer", "!coffee_worker"]
+
+        rabbit_consumer:
+            type: stream
+            path: "%kernel.logs_dir%/rabbit_consumer.log"
+            level: debug
+            channels: ["rabbit_consumer"]
+            
+        coffee_worker:
+            type: stream
+            path: "%kernel.logs_dir%/coffee_worker.log"
+            level: debug
+            channels: ["coffee_worker"]
+
+        # Si vous avez un handler pour la console, vous pourriez vouloir y inclure les logs des workers
+        # ou exclure les canaux comme pour 'main'
+        console:
+            type: console
+            process_psr_3_messages: false
+            channels: ["!event", "!doctrine", "!messenger.middleware", "!rabbit_consumer", "!coffee_worker"] 

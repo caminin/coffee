@@ -1,0 +1,23 @@
+CommandeCafe:
+    type: 'object'
+    config:
+        fields:
+            id:
+                type: 'Int'
+            type:
+                type: 'String!'
+            intensite:
+                type: 'Int!'
+            taille:
+                type: 'String!'
+            statut:
+                type: 'String!'
+            dateCreation:
+                type: 'String!'
+                resolve: '@=value.getDateCreationString()'
+            dateDebutPreparation:
+                type: 'String'
+                resolve: '@=value.getDateDebutPreparationString()'
+            dateFinPreparation:
+                type: 'String'
+                resolve: '@=value.getDateFinPreparationString()' 

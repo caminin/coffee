@@ -1,0 +1,14 @@
+DeleteResponse:
+    type: object
+    config:
+        description: "Réponse standard pour les opérations de suppression."
+        fields:
+            id:
+                type: "ID"
+                description: "ID de l'entité qui devait être supprimée."
+            success:
+                type: "Boolean!"
+                description: "Indique si l'opération de suppression a réussi."
+            message:
+                type: "String"
+                description: "Message optionnel concernant le résultat de l'opération." 

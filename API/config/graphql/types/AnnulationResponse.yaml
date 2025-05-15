@@ -1,0 +1,17 @@
+AnnulationResponse:
+    type: object
+    config:
+        description: "Réponse suite à une tentative d'annulation de commande."
+        fields:
+            id:
+                type: "ID"
+                description: "L'ID de la commande concernée."
+            success:
+                type: "Boolean!"
+                description: "Indique si l'opération d'annulation a été acceptée ou a réussi."
+            message:
+                type: "String!"
+                description: "Un message décrivant le résultat de l'opération."
+            statut:
+                type: "String"
+                description: "Le statut actuel de la commande après la tentative d'annulation." 

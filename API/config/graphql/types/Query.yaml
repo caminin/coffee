@@ -1,0 +1,24 @@
+Query:
+    type: 'object'
+    config:
+        fields:
+            _dummy:
+                type: 'String'
+                resolve: '@="dummy"'
+            commandes:
+                type: "[CommandeCafe!]"
+                resolve: "@=service('App\\Infrastructure\\Doctrine\\Repository\\CommandeCafeRepository').findAll()"
+            derniereCommande:
+                type: "CommandeCafe"
+                resolve: "@=service('App\\Infrastructure\\Doctrine\\Repository\\CommandeCafeRepository').findLatestOne()"
+            
+            # Nouvelle requête pour les dernières commandes
+            dernieresCommandesCafe:
+                type: "[CommandeCafe!]" # Retourne une liste de CommandeCafe, non nulle
+                args:
+                    limit:
+                        type: "Int"
+                        defaultValue: 20
+                        description: "Nombre maximum de commandes à retourner."
+                resolve: "@=call(service('app.commande_cafe_query_resolver').getDernieresCommandes, [args])"
+                description: "Récupère les N dernières commandes de café, triées par date de création décroissante."

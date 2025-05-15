@@ -1,0 +1,39 @@
+framework:
+    cache:
+        # Unique name of your app: used to compute stable namespaces for cache keys.
+        #prefix_seed: your_vendor_name/app_name
+
+        # The "app" cache stores to the filesystem by default.
+        # The data in this cache should persist between deploys.
+        # Other options include:
+
+        # Redis
+        #app: cache.adapter.redis
+        #default_redis_provider: redis://localhost
+
+        # APCu (not recommended with heavy random-write workloads as memory fragmentation can cause perf issues)
+        #app: cache.adapter.apcu
+
+        # Namespaced pools use the above "app" backend by default
+        #pools:
+            #my.dedicated.cache: null
+
+        pools:
+            cache.redis_cancel_flags:
+                adapter: cache.adapter.redis
+                provider: 'redis://%env(REDIS_HOST)%:%env(int:REDIS_PORT)%/%env(int:REDIS_CANCEL_FLAGS_DB)%' # Utilise des variables d'environnement
+                default_lifetime: 3600 # Durée de vie par défaut pour les items dans ce pool (ex: 1 heure)
+
+# Configuration pour que le service AnnulerCommandeService et PreparerCafeService reçoivent le bon pool
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Application\Service\AnnulerCommandeService:
+        arguments:
+            $redisCachePool: '@cache.redis_cancel_flags'
+
+    App\Application\Service\PreparerCafeService:
+        arguments:
+            $redisCachePool: '@cache.redis_cancel_flags'

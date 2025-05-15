@@ -1,0 +1,74 @@
+services:
+  app:
+    build:
+      context: ./API
+      dockerfile: docker/DockerFile
+    container_name: symfony_app
+    working_dir: /var/www
+    ports:
+      - "8080:80"
+    depends_on:
+      - rabbitmq
+      - db
+      - mercure
+      - redis
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672" # interface web
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+
+  db:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6-alpine
+    container_name: redis_cache
+    volumes:
+      - redisdata:/data
+
+  mercure:
+    image: dunglas/mercure
+    container_name: mercure_hub
+    ports:
+      - "3000:80"
+    environment:
+      MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_PUBLISHER_JWT_KEY}
+      MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_SUBSCRIBER_JWT_KEY}
+      MERCURE_PUBLIC_URL: ${MERCURE_PUBLIC_URL}
+      MERCURE_URL: ${MERCURE_URL}
+      SERVER_NAME: ':80'
+      MERCURE_EXTRA_DIRECTIVES: |-
+        cors_origins "*"
+        anonymous
+        subscriptions
+
+  frontend:
+    build:
+      context: ./FRONT
+      dockerfile: docker/Dockerfile
+    container_name: vite_front
+    working_dir: /app
+    volumes:
+      - ./FRONT:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  redisdata:

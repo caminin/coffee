@@ -1,0 +1,73 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        public: false
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Controller\:
+        resource: '../src/Controller'
+        public: true
+        autowire: true
+        autoconfigure: true
+
+    # Alias pour le resolver
+    app.commande_cafe_query_resolver: 
+        alias: App\Controller\CommandeCafeQueryResolver
+        public: true # Important pour que l'alias et le service cible soient accessibles
+
+    App\Infrastructure\Queue\RabbitMqCommandeCafeProducer:
+        arguments:
+            $host: '%env(RABBITMQ_HOST)%'
+            $port: '%env(int:RABBITMQ_PORT)%'
+            $user: '%env(RABBITMQ_USER)%'
+            $password: '%env(RABBITMQ_PASSWORD)%'
+            $queueName: '%env(RABBITMQ_COFFEE_QUEUE)%'
+        public: true
+        autowire: true
+        autoconfigure: true
+
+    App\Domain\Queue\CommandeCafeQueueProducerInterface: '@App\Infrastructure\Queue\RabbitMqCommandeCafeProducer'
+
+    App\Infrastructure\Queue\WorkerManager:
+        public: true
+        autowire: true
+        autoconfigure: true
+
+    App\Domain\Queue\WorkerManagerInterface: '@App\Infrastructure\Queue\WorkerManager'
+
+    App\Infrastructure\Queue\RabbitMqConsumer:
+        arguments:
+            $host: '%env(RABBITMQ_HOST)%'
+            $port: '%env(int:RABBITMQ_PORT)%'
+            $user: '%env(RABBITMQ_USER)%'
+            $password: '%env(RABBITMQ_PASSWORD)%'
+            $queueName: '%env(RABBITMQ_COFFEE_QUEUE)%'
+            $logger: '@monolog.logger.rabbit_consumer' # Utiliser un canal de log dédié
+
+    App\Domain\Queue\MessageConsumerInterface: '@App\Infrastructure\Queue\RabbitMqConsumer'
+
+    App\Command\CoffeeWorkerCommand:
+        arguments:
+            $messageConsumer: '@App\Domain\Queue\MessageConsumerInterface'
+            $logger: '@monolog.logger.coffee_worker' # Utiliser un canal de log dédié
+        tags:
+            - { name: console.command }
+
+    App\Domain\Realtime\CommandeUpdatePublisherInterface: '@App\Infrastructure\Mercure\MercureUpdatePublisher'
+    App\Domain\Realtime\WorkerStatusUpdatePublisherInterface: '@App\Infrastructure\Mercure\MercureUpdatePublisher'

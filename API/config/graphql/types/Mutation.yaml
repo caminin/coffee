@@ -1,0 +1,25 @@
+Mutation:
+    type: 'object'
+    config:
+        fields:
+            commandeCafeCreate:
+                type: 'CommandeCafe'
+                args:
+                    type: 'String!'
+                    intensite: 'Int!'
+                    taille: 'String!'
+                resolve: '@=call(service("App\\Controller\\CommandeCafeMutationResolver").create, [args])'
+
+            commandeCafeDelete:
+                type: DeleteResponse 
+                description: "Supprime une commande de café par son ID."
+                args:
+                    id: "ID!"
+                resolve: '@=call(service("App\\Controller\\CommandeCafeMutationResolver").deleteCommande, [args["id"]])'
+
+            annulerCommande:
+                type: 'AnnulationResponse!'
+                description: "Annule une commande de café par son ID."
+                args:
+                    id: "ID!"
+                resolve: '@=call(service("App\\Controller\\CommandeCafeMutationResolver").annulerCommande, [args["id"]])'

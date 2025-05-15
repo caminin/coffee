@@ -1,0 +1,45 @@
+FROM php:8.3-apache
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git unzip libicu-dev libpq-dev postgresql-client libzip-dev zip supervisor redis-tools \
+    && docker-php-ext-install intl pdo pgsql pdo_pgsql zip sockets \
+    && pecl install redis && docker-php-ext-enable redis \
+    && rm -rf /var/lib/apt/lists/*
+
+# Enable Apache mod_rewrite and mod_headers
+RUN a2enmod rewrite && a2enmod headers
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www
+
+# Configure Apache DocumentRoot and copy custom config
+COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
+
+# Setup Supervisor
+COPY docker/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
+COPY docker/supervisor/conf.d/ /etc/supervisor/conf.d/
+
+# Create log directory for supervisor and ensure it's writable
+RUN mkdir -p /var/log/supervisor && \
+    chown -R root:root /var/log/supervisor && \
+    chmod -R 755 /var/log/supervisor
+
+# Create run directory for supervisor socket
+RUN mkdir -p /var/run && \
+    chown root:root /var/run && \
+    chmod 755 /var/run
+
+# Copier et rendre exécutable le script d'entrée
+COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+EXPOSE 80
+
+# Définir le script d'entrée
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# La commande par défaut à passer à l'entrypoint
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf", "-n"]
