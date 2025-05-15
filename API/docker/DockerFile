@@ -2,7 +2,7 @@ FROM php:8.3-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git unzip libicu-dev libpq-dev postgresql-client libzip-dev zip supervisor redis-tools \
+    git unzip libicu-dev libpq-dev postgresql-client libzip-dev zip supervisor redis-tools netcat-openbsd \
     && docker-php-ext-install intl pdo pgsql pdo_pgsql zip sockets \
     && pecl install redis && docker-php-ext-enable redis \
     && rm -rf /var/lib/apt/lists/*

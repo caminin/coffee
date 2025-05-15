@@ -10,6 +10,20 @@ DB_PORT="5432"
 # Nous allons supposer que POSTGRES_USER est défini dans votre .env
 DB_USER="${POSTGRES_USER:-symfony}" # Utilise POSTGRES_USER ou "symfony" par défaut
 
+# Nouvelles variables pour RabbitMQ
+RABBITMQ_HOST="rabbitmq"
+RABBITMQ_PORT="5672"
+
+echo "Attente de RabbitMQ sur ${RABBITMQ_HOST}:${RABBITMQ_PORT}..."
+
+# Boucle jusqu'à ce que netcat puisse se connecter au port RabbitMQ
+until nc -z "${RABBITMQ_HOST}" "${RABBITMQ_PORT}"; do
+  >&2 echo "RabbitMQ n'est pas encore disponible - nouvelle tentative dans 1 seconde..."
+  sleep 1
+done
+
+>&2 echo "RabbitMQ est disponible."
+
 echo "Attente de PostgreSQL sur ${DB_HOST}:${DB_PORT} avec l'utilisateur ${DB_USER}..."
 
 # Boucle jusqu'à ce que pg_isready retourne un code de succès (0)
